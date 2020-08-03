@@ -34,6 +34,7 @@ class Spider:
         create_data_files(Spider.project_name, Spider.base_url)
         Spider.queue = file_to_set(Spider.queue_file)
         Spider.crawled = file_to_set(Spider.crawled_file)
+        Spider.broken = file_to_set(Spider.broken_file)
 
     # Updates user display, fills queue and updates files
     @staticmethod
@@ -81,12 +82,13 @@ class Spider:
         for url in links:
             if (url in Spider.queue) or (url in Spider.crawled):
                 continue
-            if (Spider.domain_name == get_domain_name(url)) and (get_first_path_segment(url) == ''):
-                continue
-            if (Spider.domain_name == get_domain_name(url)) and (get_first_path_segment(url)[0] != 'A'):
-                continue
-            if (Spider.domain_name == get_domain_name(url)) and (get_second_path_segment(url) != ''):
-                continue
+            if (Spider.domain_name == get_domain_name(url)):
+                if (get_first_path_segment(url) == ''):
+                    continue
+                if (get_first_path_segment(url)[0] != 'A'):
+                    continue
+                if (get_second_path_segment(url) != ''):
+                    continue
             Spider.queue.add(url)
 
     @staticmethod
