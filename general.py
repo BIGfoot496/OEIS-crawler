@@ -8,7 +8,7 @@ def create_project_dir(directory):
         os.makedirs(directory)
 
 
-# Create queue and crawled files (if not created)
+# Create queue, crawled and broken files (if not created)
 def create_data_files(project_name, base_url):
     queue = os.path.join(project_name , 'queue.txt')
     crawled = os.path.join(project_name,"crawled.txt")
