@@ -1,5 +1,5 @@
 # OEIS-crawler
-A crawler that finds broken links at the OEIS. Based on https://github.com/buckyroberts/Spider.
+A crawler that finds broken links in the Online Encyclopedia of Integer sequences (oeis.org). A large proportion of code shamelessly nicked from https://github.com/buckyroberts/Spider.
 
 Right now only recognises links that throw Error 404, because only with those I could be absolutely sure that they are actually broken, and not just don't like web-spiders, or my laptop, or me...
 Becomes increasingly slower over time. 
