@@ -9,28 +9,21 @@ def get_domain_name(url):
     except:
         return ''
 
-# Get second path segment (/maybe)
-def get_second_path_segment(url):
-    try:
-        results = get_path(url).split('/')
-        return results[2]
-    except:
-        return ''
-
-# Get first path segment (/for_instance)
-def get_first_path_segment(url):
-    try:
-        results = get_path(url).split('/')
-        return results[1]
-    except:
-        return ''
-    
 # Get path (/for_instance/maybe)
 def get_path(url):
     try:
         return urlparse(url).path
     except:
         return ''
+
+# Get nth path segment (/for_instance)
+def get_nth_path_segment(url, n):
+    try:
+        results = get_path(url).split('/')
+        return results[n]
+    except:
+        return ''
+
 
 # Get sub domain name (name.example.com)
 def get_sub_domain_name(url):
