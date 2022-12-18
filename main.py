@@ -1,17 +1,26 @@
 import threading
 from queue import Queue
 from spider import Spider
-from domain import *
-from general import *
+import domain
+import general
 
 PROJECT_NAME = 'oeis'
 HOMEPAGE = 'https://oeis.org/A066417'
-DOMAIN_NAME = get_domain_name(HOMEPAGE)
+DOMAIN_NAME = domain.get_domain_name(HOMEPAGE)
 QUEUE_FILE = PROJECT_NAME + '/queue.txt'
 CRAWLED_FILE = PROJECT_NAME + '/crawled.txt'
 NUMBER_OF_THREADS = 8
 queue = Queue()
-Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME)
+
+def ignore_url(url):
+    if (domain.get_nth_path_segment(url, 1) == ''):
+        return True
+    if (domain.get_nth_path_segment(url, 1)[0] != 'A'):
+        return True
+    if (domain.get_nth_path_segment(url, 2) != ''):
+        return True
+
+Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME, ignore_url)
 
 
 # Create worker threads (will die when main exits)
@@ -32,7 +41,7 @@ def work():
 
 # Each queued link is a new job
 def create_jobs():
-    for link in file_to_set(QUEUE_FILE):
+    for link in general.file_to_set(QUEUE_FILE):
         queue.put(link)
     queue.join()
     crawl()
@@ -40,7 +49,7 @@ def create_jobs():
 
 # Check if there are items in the queue, if so crawl them
 def crawl():
-    queued_links = file_to_set(QUEUE_FILE)
+    queued_links = general.file_to_set(QUEUE_FILE)
     if len(queued_links) > 0:
         print(str(len(queued_links)) + ' links in the queue')
         create_jobs()
