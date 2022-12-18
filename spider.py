@@ -1,12 +1,12 @@
 from urllib.request import urlopen
 from urllib import error
+import ssl
 from link_finder import LinkFinder
-from domain import *
-from general import *
+import domain
+import general
 
 
 class Spider:
-
     project_name = ''
     base_url = ''
     domain_name = ''
@@ -16,25 +16,32 @@ class Spider:
     queue = set()
     crawled = set()
     broken = set()
+    ignore_url = lambda x: False
+    max_queue_size = 20000    
+    # Needed for sites with expired ssl certificates
+    unverified_context = ssl._create_unverified_context()
 
-    def __init__(self, project_name, base_url, domain_name):
+    def __init__(self, project_name, base_url, domain_name, ignore_url):
         Spider.project_name = project_name
         Spider.base_url = base_url
         Spider.domain_name = domain_name
         Spider.queue_file = Spider.project_name + '/queue.txt'
         Spider.crawled_file = Spider.project_name + '/crawled.txt'
         Spider.broken_file = Spider.project_name + '/broken.txt'
+        
+        #ignore_url must be a callable boolean function that tells whether the spider should ignore the inward going link
+        Spider.ignore_url = ignore_url
         self.boot()
         self.crawl_page('First spider', Spider.base_url)
 
     # Creates directory and files for project on first run and starts the spider
     @staticmethod
     def boot():
-        create_project_dir(Spider.project_name)
-        create_data_files(Spider.project_name, Spider.base_url)
-        Spider.queue = file_to_set(Spider.queue_file)
-        Spider.crawled = file_to_set(Spider.crawled_file)
-        Spider.broken = file_to_set(Spider.broken_file)
+        general.create_project_dir(Spider.project_name)
+        general.create_data_files(Spider.project_name, Spider.base_url)
+        Spider.queue = general.file_to_set(Spider.queue_file)
+        Spider.crawled = general.file_to_set(Spider.crawled_file)
+        Spider.broken = general.file_to_set(Spider.broken_file)
 
     # Updates user display, fills queue and updates files
     @staticmethod
@@ -56,8 +63,8 @@ class Spider:
     def gather_links(page_url):
         html_string = ''
         try:
-            response = urlopen(page_url)
-            if Spider.domain_name != get_domain_name(page_url):
+            response = urlopen(page_url, context=Spider.unverified_context)
+            if Spider.domain_name != domain.get_domain_name(page_url):
                 return set()
             if 'text/html' in response.getheader('Content-Type'):
                 html_bytes = response.read()
@@ -79,18 +86,16 @@ class Spider:
     # Saves queue data to project files
     @staticmethod
     def add_links_to_queue(links):
-        for url in links:
-            if (url in Spider.queue) or (url in Spider.crawled):
-                continue
-            if (Spider.domain_name == get_domain_name(url)):
-                if (get_first_path_segment(url) == ''):
+        if len(Spider.queue) <= Spider.max_queue_size:
+            for url in links:
+                if (url in Spider.queue) or (url in Spider.crawled):
                     continue
-                if (get_first_path_segment(url)[0] != 'A'):
-                    continue
-                if (get_second_path_segment(url) != ''):
-                    continue
-            Spider.queue.add(url)
+                if (Spider.domain_name == domain.get_domain_name(url)):
+                    if (Spider.ignore_url(url)):
+                        continue
+                Spider.queue.add(url)
 
+    # Saves the found broken links
     @staticmethod
     def add_link_to_broken(url):
         if url in Spider.crawled:
@@ -99,6 +104,6 @@ class Spider:
 
     @staticmethod
     def update_files():
-        set_to_file(Spider.queue, Spider.queue_file)
-        set_to_file(Spider.crawled, Spider.crawled_file)
-        set_to_file(Spider.broken, Spider.broken_file)
+        general.set_to_file(Spider.queue, Spider.queue_file)
+        general.set_to_file(Spider.crawled, Spider.crawled_file)
+        general.set_to_file(Spider.broken, Spider.broken_file)
