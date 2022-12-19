@@ -4,24 +4,16 @@ from spider import Spider
 import domain
 import general
 
-PROJECT_NAME = 'oeis'
-HOMEPAGE = 'https://oeis.org/A066417'
-DOMAIN_NAME = domain.get_domain_name(HOMEPAGE)
-QUEUE_FILE = PROJECT_NAME + '/queue.txt'
-CRAWLED_FILE = PROJECT_NAME + '/crawled.txt'
-NUMBER_OF_THREADS = 8
-queue = Queue()
+import sys
 
 def ignore_url(url):
-    if (domain.get_nth_path_segment(url, 1) == ''):
-        return True
-    if (domain.get_nth_path_segment(url, 1)[0] != 'A'):
-        return True
-    if (domain.get_nth_path_segment(url, 2) != ''):
-        return True
-
-Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME, ignore_url)
-
+    if PROJECT_NAME == 'oeis':
+        if (domain.get_nth_path_segment(url, 1) == ''):
+            return True
+        if (domain.get_nth_path_segment(url, 1)[0] != 'A'):
+            return True
+        if (domain.get_nth_path_segment(url, 2) != ''):
+            return True
 
 # Create worker threads (will die when main exits)
 def create_workers():
@@ -54,5 +46,15 @@ def crawl():
         print(str(len(queued_links)) + ' links in the queue')
         create_jobs()
 
-create_workers()
-crawl()
+if __name__ == "__main__":
+    PROJECT_NAME = sys.argv[1]
+    HOMEPAGE = sys.argv[2]
+    DOMAIN_NAME = domain.get_domain_name(HOMEPAGE)
+    QUEUE_FILE = PROJECT_NAME + '/queue.txt'
+    CRAWLED_FILE = PROJECT_NAME + '/crawled.txt'
+    NUMBER_OF_THREADS = 8
+    queue = Queue()
+    
+    Spider(PROJECT_NAME, HOMEPAGE, DOMAIN_NAME, ignore_url)
+    create_workers()
+    crawl()
